@@ -1,35 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import axios from 'axios';
 function App() {
+  const [todos, setTodos] = useState([]);
+
+
   // Import tasks from local storage
-  const loadTodos = () => {
-    const savedTodos = localStorage.getItem('todos');
-    if (savedTodos) {
-      return JSON.parse(savedTodos);
-    }
+  // const loadTodos = () => {
+  //   const savedTodos = localStorage.getItem('todos');
+  //   if (savedTodos) {
+  //     return JSON.parse(savedTodos);
+  //   }
     // Example tasks if the local storage is empty
-    return [
-         {
-      content: 'Example task 1',
-      isCompleted: false,
-    },
-    {
-      content: 'Example task 2',
-      isCompleted: false,
-    },
-    {
-      content: 'Done Example task',
-      isCompleted: true,
-    }
+  //   return [
+  //        {
+  //     content: 'Example task 1',
+  //     isCompleted: false,
+  //   },
+  //   {
+  //     content: 'Example task 2',
+  //     isCompleted: false,
+  //   },
+  //   {
+  //     content: 'Done Example task',
+  //     isCompleted: true,
+  //   }
  
-    ];
-  }
+  //   ];
+  // }
 
-  const [todos, setTodos] = useState(loadTodos());
+  // useEffect(() => {
+  //   localStorage.setItem('todos', JSON.stringify(todos));
+  // }, [todos]);
+  // const [todos, setTodos] = useState(loadTodos());
 
+
+  // Fetch to-dos from the server
   useEffect(() => {
-    localStorage.setItem('todos', JSON.stringify(todos));
-  }, [todos]);
+    const fetchTodos = async () => {
+      try {
+        const response = await axios.get('/api/todos');
+        setTodos(response.data); // Returning array of to-dos from back-end
+      } catch (err) {
+        console.error('Failed to fetch todos:', err)
+      }
+    };
+    
+    fetchTodos();
+  }, []);
+  
+
+
 
   // Automatically add an empty todo at the start of the list if all tasks are completed or the list is cleared
   useEffect(() => {
@@ -45,25 +66,40 @@ function App() {
   })
 
   function handleKeyDown(e, i) {
-    if (e.key === 'Enter') {
-      createTodoAtIndex(e, i);
+    const currentTodo = todos[i]
+
+    // Check for "Enter but not "Shift + Enter"
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+
+      // Distinguish between new and exiting to-dos
+      if (currentTodo && currentTodo.isNew) {
+        saveNewTodoAtIndex(currentTodo, i);
+      } else {
+        // Insert a new, empty to-do at the next index. isNew to indicate unsaved to-dos        
+        const newTodos = [...todos];
+        newTodos.splice(i + 1, 0, { content: '', isCompleted: false, isNew: true}); 
+        setTodos(newTodos);
+      }      
     }
+
     if (e.key === 'Backspace' && todos[i].content === '') {
       e.preventDefault();
       return removeTodoAtIndex(i);
     }
-    // If the 
 
     // Navigate up the list
     if (e.key === 'ArrowUp') {
       if (i === 0) return;
       document.forms[0].elements[i - 1].focus();
     }
+
     // Navigate down the list
     if (e.key === 'ArrowDown') {
       if (i === todos.length - 1) return;
       document.forms[0].elements[i + 1].focus();
-    } 
+    }
+
     // If ctrl+enter is pressed toggle the todo as completed/incomplete
     if (e.key === 'Enter' && e.ctrlKey) {
       toggleTodoCompleteAtIndex(i);
@@ -74,17 +110,61 @@ function App() {
     }
   }
 
+  function handleBlur(e, todo, index) {
+    const content = e.target.value.trim();
+
+    // Update existing to-do
+    if (todo.id && content !== todo.content) {
+      // Todo has an ID and content has changed so update it
+      axios.put(`/api/todos/${todo.id}`, {...todo, content: updatedContent })
+      .then(response => {
+        // Update the local state with the updated to-do from the server
+        const updatedTodos = [...todos];
+        updatedTodos[index] = response.data;
+        setTodos(updatedTodos);
+        })
+        .catch(err => console.error("Failed to update todo:", err));
+      // Add New Todo
+      } else if (!todo.id && content) {
+      // If a new to-do and content is empty
+        axios.post('/api/todos', { content})
+          .then(response => {
+            // Replace the placeholder to-do with the to-do from the server
+            const updatedTodos = [...todos];
+            updatedTodos[index] = response.data;
+            setTodos(updatedTodos);
+          })
+          .catch(err => console.error("Failed to create todo:", err));
+      } 
+      // Empty New Todo
+      else if (!todo.id && !content) {
+        // If the to-do is empty, remove this placeholder todo
+        const updatedTodos = [...todos].filter((_, i) => i !== index);
+        setTodos(updatedTodos);
+      }
+    }
+  
+  function saveNewTodoAtIndex(todo, index) {
+    if (todo.content.trim()) {
+      axios.post('/api/todos', { content: todo.content })
+        .then(response => {
+          const newTodos = [...todos];
+          newTodos[index] = response.data;
+          setTodos(newTodos);
+        })
+        .catch(err => console.error("Failed to create todo:", err));
+    } else {
+      // Remove placeholder if no content was entered
+      removeTodoAtIndex(index)
+    }
+  }
 
   function createTodoAtIndex(e, i) {
-    const newTodos = [...todos];
-    newTodos.splice(i + 1, 0, {
-      content: '',
-      isCompleted: false,
-    });
-    setTodos(newTodos);
-    setTimeout(() => {
-      document.forms[0].elements[i + 1].focus();
-    }, 0);
+    if (e.key === 'Enter') {
+      const newTodoContent = e.target.value;
+      // Prevent adding empty todos
+      if (!newTodoContent.trim()) return; 
+    }
   }
 
   function updateTodoAtIndex(e, i) {
@@ -94,11 +174,21 @@ function App() {
   }
 
   function removeTodoAtIndex(i) {
-    if (i === 0 && todos.length === 1) return;
-    setTodos(todos => todos.slice(0, i).concat(todos.slice(i + 1, todos.length)));
-    setTimeout(() => {
-      document.forms[0].elements[i - 1].focus();
-    }, 0);
+    const todo = todos[i]
+    
+    if (todo.id) {
+      axios.delete(`/api/todos/${todo.id}`)
+        .then(() => {
+          // After succesfful deletion update local state
+          const updatedTodos = todos.filter((_, index) => index !== i)
+          setTodos(updatedTodos);
+        })
+        .catch(err => console.error("Failed to delete todo:", err));
+    } else {
+      //  If it's a new, unsaved to-do, remove it from local state, no need for backend interaction
+      const updatedTodos = todos.filter((_, index) => index !== i)
+      setTodos(updatedTodos);
+    }
   }
 
   function toggleTodoCompleteAtIndex(index) {
@@ -150,8 +240,9 @@ function App() {
               <input
                 type="text"
                 value={todo.content}
-                onKeyDown={e => handleKeyDown(e, i)}
-                onChange={e => updateTodoAtIndex(e, i)}
+                onBlur={(e) => handleBlur(e, todo, i)}
+                onKeyDown={(e) => handleKeyDown(e, i)}
+                onChange={(e) => updateTodoAtIndex(e, i)}
               />
             </div>
           ))}
