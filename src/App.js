@@ -49,9 +49,6 @@ function App() {
     fetchTodos();
   }, []);
   
-
-
-
   // Automatically add an empty todo at the start of the list if all tasks are completed or the list is cleared
   useEffect(() => {
     if (todos.every(todo => todo.isCompleted) || todos.length === 0) {
