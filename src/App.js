@@ -1,8 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import axios from 'axios';
+import Login from './components/Login'
+import Register from './components/Register'
+
 function App() {
   const [todos, setTodos] = useState([]);
+  const [isLoggedIn, setIsLogedIn] = useState(false);
+
+    // Fetch to-dos from the server
+  const fetchTodos = async () => {
+    try {
+      const response = await axios.get('/api/todos');
+      setTodos(response.data); // Returning array of to-dos from back-end
+    } catch (err) {
+      console.error('Failed to fetch todos:', err)
+    }
+  };  
+
+  const handleLoginSuccess = (token) => {
+    localStorage.setItem('token', token);
+    setIsLogedIn(true); 
+    fetchTodos();
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggeIn(false);
+    // Clear todos from state
+    setTodos([])
+  }
+
+  // If already logged in, get todos
+  useEffect(() => {
+    if (localStorage.getItem('token')) {
+      setIsLoggedIn(true); // Update login status if token is present
+      fetchTodos(); // Fetch todos
+    }
+  }, []);
+
+  // Axios interceptor to attach login-token to every request
+  useEffect(() => {
+    const interceptor = axios.interceptors.request.use(
+      config => {
+        const token = localStorage.getItem('token');
+        config.headers.Authorization = token ? `Bearer ${token}` : '';
+        return config;
+      },
+      error => {
+        Promise.reject(error);   
+      }
+    );
+
+    // Cleanup the interceptor when it's not needed anymore
+    return () => {
+      axios.interceptors.request.eject(interceptor);
+    };
+  }, []);
 
 
   // Import tasks from local storage
@@ -33,21 +87,6 @@ function App() {
   //   localStorage.setItem('todos', JSON.stringify(todos));
   // }, [todos]);
   // const [todos, setTodos] = useState(loadTodos());
-
-
-  // Fetch to-dos from the server
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const response = await axios.get('/api/todos');
-        setTodos(response.data); // Returning array of to-dos from back-end
-      } catch (err) {
-        console.error('Failed to fetch todos:', err)
-      }
-    };
-    
-    fetchTodos();
-  }, []);
   
   // Automatically add an empty todo at the start of the list if all tasks are completed or the list is cleared
   useEffect(() => {
@@ -218,8 +257,16 @@ function App() {
 
   return (
     <div className="app">
+      {!isLoggedIn ? (
+        <>
+          <Login onLoginSuccess={handleLoginSuccess} />
+          <Register />
+        </>
+      ) : (
+        <>
       <div className="header">
         <h1>Must (To) Do Today!</h1>
+        <p>You are Logged In</p>
       <p>Press: <strong>Enter</strong> to Add, <strong>Backspace</strong> to Remove and <strong>Arrow keys</strong> to navigate between items. <strong>Ctrl+Enter</strong> to quick complete items.</p>    
       </div>
       <form className="todo-list">
@@ -251,8 +298,12 @@ function App() {
           </button>
         </div>
       </form>
+      {/* logout button */}
+      <button onClick={handleLogout}>Logout</button>
+      </>
+      )}
       <div className="footer">
-        <p>Created by <a href='https://arttu.info'>Arttu Heinilä</a></p>
+        <p>Created by <a href='https://arttu.info'>Arttu Heinilä</a><a href='https://arttu.info/contact.html'>Contact here</a></p>
       </div>
     </div>
   );
