@@ -4,14 +4,16 @@ import axios from 'axios';
 import Login from './components/Login'
 import Register from './components/Register'
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+
 function App() {
   const [todos, setTodos] = useState([]);
-  const [isLoggedIn, setIsLogedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     // Fetch to-dos from the server
   const fetchTodos = async () => {
     try {
-      const response = await axios.get('/api/todos');
+      const response = await axios.get(`${API_BASE_URL}/api/todos`);
       setTodos(response.data); // Returning array of to-dos from back-end
     } catch (err) {
       console.error('Failed to fetch todos:', err)
@@ -20,13 +22,13 @@ function App() {
 
   const handleLoginSuccess = (token) => {
     localStorage.setItem('token', token);
-    setIsLogedIn(true); 
+    setIsLoggedIn(true); 
     fetchTodos();
   }
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    setIsLoggeIn(false);
+    setIsLoggedIn(false);
     // Clear todos from state
     setTodos([])
   }
@@ -152,7 +154,7 @@ function App() {
     // Update existing to-do
     if (todo.id && content !== todo.content) {
       // Todo has an ID and content has changed so update it
-      axios.put(`/api/todos/${todo.id}`, {...todo, content: updatedContent })
+      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, {...todo, content })
       .then(response => {
         // Update the local state with the updated to-do from the server
         const updatedTodos = [...todos];
@@ -163,7 +165,7 @@ function App() {
       // Add New Todo
       } else if (!todo.id && content) {
       // If a new to-do and content is empty
-        axios.post('/api/todos', { content})
+        axios.post(`${API_BASE_URL}/api/todos`, { content})
           .then(response => {
             // Replace the placeholder to-do with the to-do from the server
             const updatedTodos = [...todos];
@@ -182,7 +184,7 @@ function App() {
   
   function saveNewTodoAtIndex(todo, index) {
     if (todo.content.trim()) {
-      axios.post('/api/todos', { content: todo.content })
+      axios.post(`${API_BASE_URL}/api/todos`, { content: todo.content })
         .then(response => {
           const newTodos = [...todos];
           newTodos[index] = response.data;
@@ -213,7 +215,7 @@ function App() {
     const todo = todos[i]
     
     if (todo.id) {
-      axios.delete(`/api/todos/${todo.id}`)
+      axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`)
         .then(() => {
           // After succesfful deletion update local state
           const updatedTodos = todos.filter((_, index) => index !== i)
