@@ -274,7 +274,9 @@ function App() {
       <form className="todo-list">
         <ul>
           {todos.map((todo, i) => (
-            <div className={`todo ${todo.isCompleted && 'todo-is-completed'}`}>
+            <div key={todo.id} className={`todo ${todo.isCompleted ? 'todo-is-completed' : ''}`}>
+            {/* <div key={todo.id} className={`todo ${todo.isCompleted && 'todo-is-completed'}`}> */}
+             {/* <div className={`todo ${todo.isCompleted && 'todo-is-completed'}`}> */}
               <div className={`star ${todo.isStarred ? 'starred' : ''}`} onClick={() => toggleStarAtIndex(i)}>
                   <span></span>
               </div>
