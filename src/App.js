@@ -268,7 +268,9 @@ function App() {
         <>
       <div className="header">
         <h1>Must (To) Do Today!</h1>
-        <p>You are Logged In</p>
+        <p>You are Logged In</p>      
+        {/* logout button */}
+      <button onClick={handleLogout} className='logout-btn'>Logout</button>
       <p>Press: <strong>Enter</strong> to Add, <strong>Backspace</strong> to Remove and <strong>Arrow keys</strong> to navigate between items. <strong>Ctrl+Enter</strong> to quick complete items.</p>    
       </div>
       <form className="todo-list">
@@ -302,8 +304,6 @@ function App() {
           </button>
         </div>
       </form>
-      {/* logout button */}
-      <button onClick={handleLogout}>Logout</button>
       </>
       )}
       <div className="footer">

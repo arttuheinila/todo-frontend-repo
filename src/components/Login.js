@@ -19,13 +19,13 @@ function Login({ onLoginSuccess }) {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="login-form">
             <label>
-                Username:
+                <p>Username:</p>
                 <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
             </label>
             <label>
-                Password:
+                <p>Password:</p>
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
             <button type="submit">Login</button>

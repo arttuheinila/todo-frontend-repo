@@ -12,7 +12,7 @@ body {
 }
 
 .app {
-  padding-top: 10rem;
+  padding-top: 2rem;
 }
 
 .header {
@@ -209,4 +209,74 @@ p {
     height: 24px;
     margin-right: 5px; 
   }
+
+  .login-form {
+    padding: 1.5rem;
+    margin-top: 0;
+  } 
+
+}
+
+.login-form {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+}
+
+.login-form label p {
+  margin: 0;
+  color: #282c34;
+  font-weight: bold;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc; /* Light grey border */
+  font-size: 1rem;
+  color: black;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: none;
+  background-color: #282c34;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.login-form button:hover {
+  background-color: #3e4451;
+}
+
+.logout-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 15px;
+  background-color: #f44336;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity .2s ease-in-out;
+}
+
+.logout-btn:hover {
+  opacity: 1;
+}
+
+.logout-btn:active {
+  transform: translateY(1px);
+  opacity: 0.8;
 }
