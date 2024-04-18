@@ -5,17 +5,26 @@ import axios from "axios";
 function Register() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError(null);
         try {
             const { data } = await axios.post('/api/users/register', { username, password });
             console.log('User registered:', data);
-            // Redirect user to login page
-            navigate('/login');
+            setLoading(false);
+            setTimeout(() => navigate('/login'), 2000);
         } catch (error) {
-            console.error('Registration error:', error.response.data)
+            setLoading(false);
+            if (error.response && error.response.status === 409) {
+                setError('Username already taken');
+            } else {
+                setError('Registration failed. Please try again later.')
+            }
         }
     }
 
@@ -29,7 +38,10 @@ function Register() {
                 <p>Password:</p>
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
-            <button type="submit">Register</button>
+            <button type="submit" disabled={loading}>
+                {loading ? 'Registering...' : 'Register'}
+                </button>
+                {error && <p className="error-message">{error}</p>}
         </form>
     );
 }

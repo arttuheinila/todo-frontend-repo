@@ -7,18 +7,30 @@ import Register from './components/Register'
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function App() {
+  console.log("App re-rendered")
   const [todos, setTodos] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
-    // Fetch to-dos from the server
+  // Fetch to-dos from the server
   const fetchTodos = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/todos`);
-      setTodos(response.data); // Returning array of to-dos from back-end
-    } catch (err) {
-      console.error('Failed to fetch todos:', err)
-    }
-  };  
+    const { data } = await axios.get(`${API_BASE_URL}/api/todos`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
+    });
+    setTodos(data)
+  } catch (error) {
+    console.log('Failed to fetch todos:', error);
+  }
+};
+  useEffect(() => {
+  if (localStorage.getItem('token')) {
+    // Update login status if token is present
+    setIsLoggedIn(true);
+    // And get todos
+    fetchTodos();
+  }
+  }, []);
 
   const handleLoginSuccess = (token) => {
     localStorage.setItem('token', token);
@@ -32,14 +44,6 @@ function App() {
     // Clear todos from state
     setTodos([])
   }
-
-  // If already logged in, get todos
-  useEffect(() => {
-    if (localStorage.getItem('token')) {
-      setIsLoggedIn(true); // Update login status if token is present
-      fetchTodos(); // Fetch todos
-    }
-  }, []);
 
   // Axios interceptor to attach login-token to every request
   useEffect(() => {
@@ -59,36 +63,6 @@ function App() {
       axios.interceptors.request.eject(interceptor);
     };
   }, []);
-
-
-  // Import tasks from local storage
-  // const loadTodos = () => {
-  //   const savedTodos = localStorage.getItem('todos');
-  //   if (savedTodos) {
-  //     return JSON.parse(savedTodos);
-  //   }
-    // Example tasks if the local storage is empty
-  //   return [
-  //        {
-  //     content: 'Example task 1',
-  //     isCompleted: false,
-  //   },
-  //   {
-  //     content: 'Example task 2',
-  //     isCompleted: false,
-  //   },
-  //   {
-  //     content: 'Done Example task',
-  //     isCompleted: true,
-  //   }
- 
-  //   ];
-  // }
-
-  // useEffect(() => {
-  //   localStorage.setItem('todos', JSON.stringify(todos));
-  // }, [todos]);
-  // const [todos, setTodos] = useState(loadTodos());
   
   // Automatically add an empty todo at the start of the list if all tasks are completed or the list is cleared
   useEffect(() => {
@@ -103,164 +77,189 @@ function App() {
     }
   })
 
-  function handleKeyDown(e, i) {
-    const currentTodo = todos[i]
-
-    // Check for "Enter but not "Shift + Enter"
+  // Add hotkey functions
+  const handleKeyDown = (e, idx) => {
+    // Enter saves new tasks
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-
-      // Distinguish between new and exiting to-dos
-      if (currentTodo && currentTodo.isNew) {
-        saveNewTodoAtIndex(currentTodo, i);
-      } else {
-        // Insert a new, empty to-do at the next index. isNew to indicate unsaved to-dos        
-        const newTodos = [...todos];
-        newTodos.splice(i + 1, 0, { content: '', isCompleted: false, isNew: true}); 
-        setTodos(newTodos);
-      }      
+      saveTodoAtIndex(idx);
     }
-
-    if (e.key === 'Backspace' && todos[i].content === '') {
+    // Tab creates a new todo
+    else if (e.key === 'Tab') {
       e.preventDefault();
-      return removeTodoAtIndex(i);
+      addNewTodoAtIndex(idx + 1);
     }
-
-    // Navigate up the list
-    if (e.key === 'ArrowUp') {
-      if (i === 0) return;
-      document.forms[0].elements[i - 1].focus();
+    // Backspace removes empty to-do
+    else if (e.key === 'Backspace' && todos[idx].content === '') {
+      e.preventDefault();
+      removeTodoAtIndex(idx);
     }
-
-    // Navigate down the list
-    if (e.key === 'ArrowDown') {
-      if (i === todos.length - 1) return;
-      document.forms[0].elements[i + 1].focus();
+    // Arrows to navigate between tasks
+    else if (e.key === 'ArrowUp' && idx > 0) {
+      e.preventDefault();
+      document.forms[0].elements[idx - 1].focus();
     }
-
-    // If ctrl+enter is pressed toggle the todo as completed/incomplete
-    if (e.key === 'Enter' && e.ctrlKey) {
-      toggleTodoCompleteAtIndex(i);
-      // set focus to same index that it when completing/incompleting the task
-      setTimeout(() => {
-        document.forms[0].elements[i].focus();
-      }, 0);      
+    else if (e.key === 'ArrowDown' && idx < todos.length -1) {
+      e.preventDefault();
+      document.forms[0].elements[idx + 1].focus();
     }
-  }
-
-  function handleBlur(e, todo, index) {
-    const content = e.target.value.trim();
-
-    // Update existing to-do
-    if (todo.id && content !== todo.content) {
-      // Todo has an ID and content has changed so update it
-      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, {...todo, content })
-      .then(response => {
-        // Update the local state with the updated to-do from the server
-        const updatedTodos = [...todos];
-        updatedTodos[index] = response.data;
-        setTodos(updatedTodos);
-        })
-        .catch(err => console.error("Failed to update todo:", err));
-      // Add New Todo
-      } else if (!todo.id && content) {
-      // If a new to-do and content is empty
-        axios.post(`${API_BASE_URL}/api/todos`, { content})
-          .then(response => {
-            // Replace the placeholder to-do with the to-do from the server
-            const updatedTodos = [...todos];
-            updatedTodos[index] = response.data;
-            setTodos(updatedTodos);
-          })
-          .catch(err => console.error("Failed to create todo:", err));
-      } 
-      // Empty New Todo
-      else if (!todo.id && !content) {
-        // If the to-do is empty, remove this placeholder todo
-        const updatedTodos = [...todos].filter((_, i) => i !== index);
-        setTodos(updatedTodos);
-      }
+    // Ctrl+Enter toggles the todo as completed/incomplete
+    else if (e.key === 'Enter' && e.ctrlKey) {
+      e.preventDefault();
+      toggleTodoCompleteAtIndex(idx);
     }
-  
-  function saveNewTodoAtIndex(todo, index) {
-    if (todo.content.trim()) {
-      axios.post(`${API_BASE_URL}/api/todos`, { content: todo.content })
-        .then(response => {
-          const newTodos = [...todos];
-          newTodos[index] = response.data;
-          setTodos(newTodos);
-        })
-        .catch(err => console.error("Failed to create todo:", err));
-    } else {
-      // Remove placeholder if no content was entered
-      removeTodoAtIndex(index)
+    // Star the todo
+    else if (e.key === 's' && e.altKey) {
+      e.preventDefault();
+      toggleStarAtIndex(idx);
     }
-  }
+  };
 
-  function createTodoAtIndex(e, i) {
-    if (e.key === 'Enter') {
-      const newTodoContent = e.target.value;
-      // Prevent adding empty todos
-      if (!newTodoContent.trim()) return; 
-    }
-  }
-
-  function updateTodoAtIndex(e, i) {
+  function updateTodoAtIndex(e, idx) {
     const newTodos = [...todos];
-    newTodos[i].content = e.target.value;
+    newTodos[idx] = { ...newTodos[idx], content: e.target.value };
     setTodos(newTodos);
   }
 
-  function removeTodoAtIndex(i) {
-    const todo = todos[i]
+  const saveTodoAtIndex = (idx) => {
+    const todo = todos[idx];
+    if (todo.id) {
+      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
+      .then(response => {
+        updateLocalTodos(idx, response.data);
+        // Show toast message on successful todo update
+        showToastMessage();
+      }).catch(console.error);
+    } else {
+      axios.post(`${API_BASE_URL}/api/todos`, todo)
+      .then(response => {
+        updateLocalTodos(idx, response.data);
+        // Show toast on successful creation
+        showToastMessage();
+      }).catch(console.error);
+    }
+  };
+
+  const addNewTodoAtIndex = (idx) => {
+    const newTodo = { content: '', isCompleted: false };
+    const updatedTodos = [...todos.slice(0, idx), newTodo, ...todos.slice(idx)];
+    setTodos(updatedTodos);
+    setTimeout(() => {
+        document.forms[0].elements[idx].focus();
+    }, 0);
+};
+
+  const removeTodoAtIndex = (idx) => {
+    const todo = todos[idx]
     
     if (todo.id) {
       axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`)
         .then(() => {
-          // After succesfful deletion update local state
-          const updatedTodos = todos.filter((_, index) => index !== i)
+          // After successful deletion update local state
+          const updatedTodos = todos.filter((_, index) => index !== idx)
           setTodos(updatedTodos);
         })
         .catch(err => console.error("Failed to delete todo:", err));
     } else {
       //  If it's a new, unsaved to-do, remove it from local state, no need for backend interaction
-      const updatedTodos = todos.filter((_, index) => index !== i)
+      const updatedTodos = todos.filter((_, index) => index !== idx)
       setTodos(updatedTodos);
     }
   }
 
-  function toggleTodoCompleteAtIndex(index) {
-    const temporaryTodos = [...todos];
-    // Toggle the isCompleted property
-    temporaryTodos[index].isCompleted = !temporaryTodos[index].isCompleted;
+  const toggleTodoCompleteAtIndex = (idx) => {
+    const updatedTodos = todos.map((todo, index) => {
+        if (index === idx) {
+            // Toggle completion status and update the backend
+            const newIsCompleted = !todo.is_completed;
+            // Optimistically update the todo item
+            const updatedTodo = {...todo, is_completed: newIsCompleted};
 
+            // Update backend
+            axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
+                { ...todo, is_completed: newIsCompleted }) 
+            .then(response => {
+                // Update the state with the actual data returned from the backend to ensure consistency
+                const refreshedTodos = updatedTodos.map((item, refreshIdx) => {
+                  if (refreshIdx === idx) {
+                    // Update the specific todo item with fresh data
+                      return {...item, ...response.data};  
+                  }
+                  return item;
+              });
+              setTodos(refreshedTodos);
+          })
+          .catch(error => {
+              console.error("Failed to update todo:", error);
+          });
+
+          return updatedTodo;
+      }
+      return todo;
+  });
+  // Set the optimistically updated todos to state
+  setTodos(updatedTodos);
+};
+
+    // ???***
     // If the todo is now completed, move it to the end of the list
-    if (temporaryTodos[index].isCompleted) {
-      const completedTodo = temporaryTodos.splice(index, 1)[0];
-      temporaryTodos.push(completedTodo);
+    // if (newTodos[idx].isCompleted) {
+    //   const completedTodo = newTodos.splice(index, 1)[0];
+    //   newTodos.push(completedTodo);
+    // }
+    // setTodos(newTodos);
+
+  const toggleStarAtIndex = (idx) => {
+    const newTodos = [...todos];
+    newTodos[idx].isStarred = !newTodos[idx].isStarred;
+    setTodos(newTodos);
+    if (newTodos[idx].id) {
+      // Persist the change
+        saveTodoAtIndex(idx);
     }
-    setTodos(temporaryTodos);
+};
+
+  function clearCompletedTodos() {
+    todos.forEach(todo => {
+      if (todo.isCompleted) {
+        axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          }).then(() => {
+            console.log(`Deleted todo with ID: ${todo.id}`);
+          }).catch(err => {
+            console.error("Failed to delete todo:", err);
+          });
+        }
+        });
+        // Update local state to remove completed todos
+        const updatedTodos = todos.filter(todo =>!todo.isCompleted);
+        setTodos(updatedTodos);
   }
 
-  // Star at index + move the starred to index[0]
-  function toggleStarAtIndex(index) {
-    const temporaryTodos = [...todos];
-    // Toggle the isCompleted property
-    temporaryTodos[index].isStarred =!temporaryTodos[index].isStarred;
-
-    // If the todo is now completed, move it to the end of the list
-    if (temporaryTodos[index].isStarred) {
-      const starredTodo = temporaryTodos.splice(index, 1)[0];
-      temporaryTodos.unshift(starredTodo);
-    }
-    setTodos(temporaryTodos);
+  const updateLocalTodos = (idx, newTodo) => {
+    const updatedTodos = [...todos];
+    updatedTodos[idx] = newTodo;
+    setTodos(updatedTodos);
   }
 
+  // Show toast message for 3 seconds
+  const showToastMessage = () => {
+    setShowToast(true);
+    setTimeout(() => {
+      setShowToast(false);
+    }, 3000);
+  };
 
   return (
     <div className="app">
       {!isLoggedIn ? (
         <>
+        <div className="header">
+        <h1>Must (To) Do Today!</h1>
+        <p><b>You are not Logged In</b></p>      
+        <p>A Todo App (duh) that let's you add, update and remove things to do without all the unnecessary bells and whistles.</p>
+        <p>If you want to test the site without registering you can go <a href="https://arttu.info/todo">here</a>. Beware that unregistered todos live only in the local browser.</p>
+        </div>
           <Login onLoginSuccess={handleLoginSuccess} />
           <Register />
         </>
@@ -273,24 +272,23 @@ function App() {
       <button onClick={handleLogout} className='logout-btn'>Logout</button>
       <p>Press: <strong>Enter</strong> to Add, <strong>Backspace</strong> to Remove and <strong>Arrow keys</strong> to navigate between items. <strong>Ctrl+Enter</strong> to quick complete items.</p>    
       </div>
+      {showToast && <div className="toast show">Todo saved</div>}
       <form className="todo-list">
         <ul>
           {todos.map((todo, i) => (
-            <div key={todo.id} className={`todo ${todo.isCompleted ? 'todo-is-completed' : ''}`}>
-            {/* <div key={todo.id} className={`todo ${todo.isCompleted && 'todo-is-completed'}`}> */}
-             {/* <div className={`todo ${todo.isCompleted && 'todo-is-completed'}`}> */}
+            <div key={todo.id || `temp-${i}`} className={`todo ${todo.is_completed ? 'todo-is-completed' : ''}`}>
               <div className={`star ${todo.isStarred ? 'starred' : ''}`} onClick={() => toggleStarAtIndex(i)}>
                   <span></span>
               </div>
-              <div className={'checkbox'} onClick={() => toggleTodoCompleteAtIndex(i)}>
-                {todo.isCompleted && (
-                  <span>&#x2714;</span>
+              <div className={`checkbox ${todo.is_completed ? 'checkbox-checked' : ''}`} onClick={() => toggleTodoCompleteAtIndex(i)}>
+                {todo.is_completed && (
+                    <span>&#x2714;</span>  
                 )}
-              </div>
+            </div>
               <input
                 type="text"
                 value={todo.content}
-                onBlur={(e) => handleBlur(e, todo, i)}
+                onBlur={() => saveTodoAtIndex(i)}
                 onKeyDown={(e) => handleKeyDown(e, i)}
                 onChange={(e) => updateTodoAtIndex(e, i)}
               />
@@ -298,9 +296,9 @@ function App() {
           ))}
         </ul>
         <div className="clearDone">
-          {/* Button for the completed tasks */}
+          {/* Button to clear completed tasks */}
           <button type="button" className='btn' 
-            onClick={() => setTodos(todos.filter(todo =>!todo.isCompleted))}>Clear Completed
+            onClick={clearCompletedTodos}>Clear Completed
           </button>
         </div>
       </form>

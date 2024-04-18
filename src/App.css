@@ -66,9 +66,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0);
 }
 
-.checkbox-checked {
+.checkbox-checked, .todo-is-completed .checkbox {
   color: #000;
   background: #fff;
+  content: '✔'; /* This is the checkmark */
+  font-size: 14px; /* Adjust size as needed */
+  justify-content: center;
+  align-items: center;
 }
 
 .star {
@@ -115,6 +119,12 @@ p {
   color: #fff;
 }   
 
+a {
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+}
+
 
 .footer {
   display: flex;
@@ -125,7 +135,6 @@ p {
   bottom: 0;
   width: 100%;
   background-color: white;
-  /* opacity: 0.8; */
   /* Make sure no element goes under the footer */
   z-index: 100;
 }
@@ -139,9 +148,9 @@ p {
   color: black;
   text-decoration: none;
   font-weight: bold;
+  padding: 0px 5px;
 }
 
-/* Styling for button */
 .btn {
   display: inline-block;
   padding: 8px 16px;
@@ -162,6 +171,108 @@ p {
 .btn:active {
   transform: translateY(1px);
   opacity: 0.6;
+}
+
+
+.login-form {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 320px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 2rem auto;
+}
+
+.login-form label p {
+  margin: 0;
+  color: #282c34;
+  font-weight: bold;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  color: black;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: none;
+  background-color: #282c34;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.login-form button:hover {
+  background-color: #3e4451;
+}
+
+.logout-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 15px;
+  background-color: #f44336;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity .2s ease-in-out;
+}
+
+.logout-btn:hover {
+  opacity: 1;
+}
+
+.logout-btn:active {
+  transform: translateY(1px);
+  opacity: 0.8;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
+}
+
+toast {
+  visibility: hidden;
+  min-width: 250px;
+  margin-left: -125px;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 2px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1;
+  left: 50%;
+  bottom: 30px;
+  font-size: 17px;
+}
+
+.toast.show {
+  visibility: visible;
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+@keyframes fadein {
+  from {bottom: 0; opacity: 0;} 
+  to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadeout {
+  from {bottom: 30px; opacity: 1;} 
+  to {bottom: 0; opacity: 0;}
 }
 
 @media (max-width: 768px) {
@@ -215,68 +326,4 @@ p {
     margin-top: 0;
   } 
 
-}
-
-.login-form {
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 15px;
-  padding: 2rem;
-  width: 100%;
-  max-width: 320px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin: 2rem auto;
-}
-
-.login-form label p {
-  margin: 0;
-  color: #282c34;
-  font-weight: bold;
-}
-
-.login-form input {
-  width: 100%;
-  padding: 0.5rem;
-  margin-bottom: 1rem;
-  border-radius: 5px;
-  border: 1px solid #ccc; /* Light grey border */
-  font-size: 1rem;
-  color: black;
-}
-
-.login-form button {
-  width: 100%;
-  padding: 0.5rem;
-  border-radius: 5px;
-  border: none;
-  background-color: #282c34;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease-in-out;
-}
-
-.login-form button:hover {
-  background-color: #3e4451;
-}
-
-.logout-btn {
-  display: inline-block;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 15px;
-  background-color: #f44336;
-  color: white;
-  font-size: 1rem;
-  cursor: pointer;
-  opacity: 0.8;
-  transition: opacity .2s ease-in-out;
-}
-
-.logout-btn:hover {
-  opacity: 1;
-}
-
-.logout-btn:active {
-  transform: translateY(1px);
-  opacity: 0.8;
 }
