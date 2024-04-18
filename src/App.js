@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
-import axios from 'axios';
+import axios from 'axios';     
 import Login from './components/Login'
 import Register from './components/Register'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
 function App() {
-  console.log("App re-rendered")
   const [todos, setTodos] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  // Ref to store the index of a newly added todo for focusing
+  const newTodoIndexRef = useRef(null);
 
   // Fetch to-dos from the server
   const fetchTodos = async () => {
@@ -75,7 +76,8 @@ function App() {
      ...todos,
       ]);
     }
-  })
+  }, [todos])
+
 
   // Add hotkey functions
   const handleKeyDown = (e, idx) => {
@@ -83,14 +85,16 @@ function App() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       saveTodoAtIndex(idx);
+      showToastMessage();
     }
-    // Tab creates a new todo
+    // Tab saves current and creates a new todo
     else if (e.key === 'Tab') {
       e.preventDefault();
+      // saveTodoAtIndex(idx);
       addNewTodoAtIndex(idx + 1);
     }
     // Backspace removes empty to-do
-    else if (e.key === 'Backspace' && todos[idx].content === '') {
+    else if (e.key === 'Backspace' && todos[idx].content === '' && !todos[idx].isNew) {
       e.preventDefault();
       removeTodoAtIndex(idx);
     }
@@ -128,26 +132,31 @@ function App() {
       .then(response => {
         updateLocalTodos(idx, response.data);
         // Show toast message on successful todo update
-        showToastMessage();
+        // showToastMessage();
       }).catch(console.error);
     } else {
       axios.post(`${API_BASE_URL}/api/todos`, todo)
       .then(response => {
         updateLocalTodos(idx, response.data);
         // Show toast on successful creation
-        showToastMessage();
+        // showToastMessage();
       }).catch(console.error);
     }
   };
 
   const addNewTodoAtIndex = (idx) => {
-    const newTodo = { content: '', isCompleted: false };
+    const newTodo = { content: '', isCompleted: false, isNew: true };
     const updatedTodos = [...todos.slice(0, idx), newTodo, ...todos.slice(idx)];
     setTodos(updatedTodos);
-    setTimeout(() => {
-        document.forms[0].elements[idx].focus();
-    }, 0);
-};
+    newTodoIndexRef.current = idx;  // Set the ref for the new todo index
+  };
+
+  useEffect(() => {
+    if (newTodoIndexRef.current !== null) {
+      document.forms[0].elements[newTodoIndexRef.current].focus();
+      newTodoIndexRef.current = null;
+    }
+  }, [todos]);
 
   const removeTodoAtIndex = (idx) => {
     const todo = todos[idx]
@@ -222,9 +231,8 @@ function App() {
   function clearCompletedTodos() {
     todos.forEach(todo => {
       if (todo.isCompleted) {
-        axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-          }).then(() => {
+        axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`)
+        .then(() => {
             console.log(`Deleted todo with ID: ${todo.id}`);
           }).catch(err => {
             console.error("Failed to delete todo:", err);
@@ -241,7 +249,7 @@ function App() {
     updatedTodos[idx] = newTodo;
     setTodos(updatedTodos);
   }
-
+  
   // Show toast message for 3 seconds
   const showToastMessage = () => {
     setShowToast(true);
@@ -270,7 +278,7 @@ function App() {
         <p>You are Logged In</p>      
         {/* logout button */}
       <button onClick={handleLogout} className='logout-btn'>Logout</button>
-      <p>Press: <strong>Enter</strong> to Add, <strong>Backspace</strong> to Remove and <strong>Arrow keys</strong> to navigate between items. <strong>Ctrl+Enter</strong> to quick complete items.</p>    
+      <p>Press: <strong>Enter</strong> to Save, <strong>Tab</strong> to Add new, <strong>Backspace</strong> to Remove, <strong>Ctrl+Enter</strong> to Complete, <strong>Alt+s</strong> to Star, <strong>Arrow keys</strong> to Navigate.</p>
       </div>
       {showToast && <div className="toast show">Todo saved</div>}
       <form className="todo-list">
@@ -288,7 +296,7 @@ function App() {
               <input
                 type="text"
                 value={todo.content}
-                onBlur={() => saveTodoAtIndex(i)}
+                // onBlur={() => saveTodoAtIndex(i)}
                 onKeyDown={(e) => handleKeyDown(e, i)}
                 onChange={(e) => updateTodoAtIndex(e, i)}
               />
