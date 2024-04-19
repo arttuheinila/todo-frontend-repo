@@ -243,20 +243,24 @@ function App() {
   };
 
   function clearCompletedTodos() {
-    todos.forEach(todo => {
-      if (todo.isCompleted) {
-        axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`)
-        .then(() => {
-            console.log(`Deleted todo with ID: ${todo.id}`);
-          }).catch(err => {
-            console.error("Failed to delete todo:", err);
-          });
-        }
-        });
-        // Update local state to remove completed todos
-        const updatedTodos = todos.filter(todo =>!todo.isCompleted);
-        setTodos(updatedTodos);
-  }
+    console.log('Clearing completed todos');
+    const completedIds = todos.filter(todo => todo.is_completed)
+
+    // Array of promises for deleting copleted todos
+    const deletePromises = completedIds.map(id =>
+      axios.delete(`${API_BASE_URL}/api/todos/${id.id}`)
+      .catch(err => console.error("Failed to delete todo with ID:", id, err))
+  );
+  // Wait for all deletions to complete
+  Promise.all(deletePromises).then(() => {
+    console.log('All completed todos deleted');
+    // Filter out the deleted todos from the state
+    const updatedTodos = todos.filter(todo => !todo.is_completed);
+    setTodos(updatedTodos);
+  }).catch(error => {
+    console.error("Error clearing completed todos:", error);
+  })
+  };
 
   const updateLocalTodos = (idx, newTodo) => {
     const updatedTodos = todos.map((item, index) => {
