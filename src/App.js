@@ -227,13 +227,20 @@ function App() {
 
   const toggleStarAtIndex = (idx) => {
     const newTodos = [...todos];
-    newTodos[idx].isStarred = !newTodos[idx].isStarred;
+    newTodos[idx].is_starred = !newTodos[idx].is_starred;
     setTodos(newTodos);
     if (newTodos[idx].id) {
       // Persist the change
-        saveTodoAtIndex(idx);
+        axios.put(`${API_BASE_URL}/api/todos/${newTodos[idx].id}`, {
+          ...newTodos[idx],
+          is_starred: newTodos[idx].is_starred
+        })
+        .then(response => {
+          updateLocalTodos(idx, response.data);
+        })
+        .catch(console.error);
     }
-};
+  };
 
   function clearCompletedTodos() {
     todos.forEach(todo => {
@@ -252,8 +259,12 @@ function App() {
   }
 
   const updateLocalTodos = (idx, newTodo) => {
-    const updatedTodos = [...todos];
-    updatedTodos[idx] = newTodo;
+    const updatedTodos = todos.map((item, index) => {
+      if (index === idx) {
+          return { ...item, ...newTodo };
+      }
+      return item;
+    });
     setTodos(updatedTodos);
   }
   
@@ -292,7 +303,7 @@ function App() {
         <ul>
           {todos.map((todo, i) => (
             <div key={todo.id || `temp-${i}`} className={`todo ${todo.is_completed ? 'todo-is-completed' : ''}`}>
-              <div className={`star ${todo.isStarred ? 'starred' : ''}`} onClick={() => toggleStarAtIndex(i)}>
+              <div className={`star ${todo.is_starred ? 'starred' : ''}`} onClick={() => toggleStarAtIndex(i)}>
                   <span></span>
               </div>
               <div className={`checkbox ${todo.is_completed ? 'checkbox-checked' : ''}`} onClick={() => toggleTodoCompleteAtIndex(i)}>

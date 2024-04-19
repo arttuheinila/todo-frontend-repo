@@ -84,21 +84,26 @@ checkbox-checked, .todo-is-completed .checkbox:hover {
   cursor: pointer;
   margin-right: 8px;
   user-select: none;
+  transition: color 0.2s ease-in-out;
 }
 
-.star:hover {
-  color: #000;
+.star:hover:before {
+  color: #ff9800;
 }
 
 .star:before {
-  content: '\2606'; /* Empty star */
+  content: '\2606';
   font-size: 24px;
-  color: #ccc; /* Light grey for not starred */
+  color: #ccc; 
 }
 
 .todo .star.starred:before {
-  content: '\2605'; /* Filled star */
-  color: rgb(209, 209, 39); /* Yellow for starred */
+  content: '\2605'; 
+  color: #ffd700
+}
+
+.star.starred:hover:before {
+  color: rgb(209, 209, 39);
 }
 
 ul {
