@@ -69,16 +69,25 @@ body {
 .checkbox-checked, .todo-is-completed .checkbox {
   color: #000;
   background: #fff;
-  content: '✔'; /* This is the checkmark */
-  font-size: 14px; /* Adjust size as needed */
+  content: '✔'; 
+  font-size: 14px; 
   justify-content: center;
   align-items: center;
+}
+
+checkbox-checked, .todo-is-completed .checkbox:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0);
 }
 
 .star {
   cursor: pointer;
   margin-right: 8px;
   user-select: none;
+}
+
+.star:hover {
+  color: #000;
 }
 
 .star:before {

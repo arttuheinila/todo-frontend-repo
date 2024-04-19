@@ -82,16 +82,18 @@ function App() {
   // Add hotkey functions
   const handleKeyDown = (e, idx) => {
     // Enter saves new tasks
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && e.ctrlKey) {
       e.preventDefault();
-      saveTodoAtIndex(idx);
-      showToastMessage();
+      toggleTodoCompleteAtIndex(idx);
     }
     // Tab saves current and creates a new todo
     else if (e.key === 'Tab') {
       e.preventDefault();
-      // saveTodoAtIndex(idx);
-      addNewTodoAtIndex(idx + 1);
+      // Save current
+      saveTodoAtIndex(idx, () => {
+        // After saving, add a new todo
+        addNewTodoAtIndex(idx + 1);
+      });
     }
     // Backspace removes empty to-do
     else if (e.key === 'Backspace' && todos[idx].content === '' && !todos[idx].isNew) {
@@ -108,9 +110,10 @@ function App() {
       document.forms[0].elements[idx + 1].focus();
     }
     // Ctrl+Enter toggles the todo as completed/incomplete
-    else if (e.key === 'Enter' && e.ctrlKey) {
+    else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      toggleTodoCompleteAtIndex(idx);
+      saveTodoAtIndex(idx);
+      showToastMessage();
     }
     // Star the todo
     else if (e.key === 's' && e.altKey) {
@@ -125,7 +128,7 @@ function App() {
     setTodos(newTodos);
   }
 
-  const saveTodoAtIndex = (idx) => {
+  const saveTodoAtIndex = (idx, callback) => {
     const todo = todos[idx];
     if (todo.id) {
       axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
@@ -133,6 +136,8 @@ function App() {
         updateLocalTodos(idx, response.data);
         // Show toast message on successful todo update
         // showToastMessage();
+        // Call the callback after save, if provided
+        if (callback) callback();
       }).catch(console.error);
     } else {
       axios.post(`${API_BASE_URL}/api/todos`, todo)
@@ -140,6 +145,8 @@ function App() {
         updateLocalTodos(idx, response.data);
         // Show toast on successful creation
         // showToastMessage();
+        // Call the callback after save, if provided
+        if (callback) callback();
       }).catch(console.error);
     }
   };
