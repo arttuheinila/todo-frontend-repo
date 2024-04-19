@@ -203,7 +203,7 @@ function App() {
                   }
                   return item;
               });
-              setTodos(refreshedTodos);
+              setTodos(refreshedTodos.sort((a, b) => a.is_completed - b.is_completed));
           })
           .catch(error => {
               console.error("Failed to update todo:", error);
@@ -217,30 +217,39 @@ function App() {
   setTodos(updatedTodos);
 };
 
-    // ???***
-    // If the todo is now completed, move it to the end of the list
-    // if (newTodos[idx].isCompleted) {
-    //   const completedTodo = newTodos.splice(index, 1)[0];
-    //   newTodos.push(completedTodo);
-    // }
-    // setTodos(newTodos);
-
   const toggleStarAtIndex = (idx) => {
-    const newTodos = [...todos];
-    newTodos[idx].is_starred = !newTodos[idx].is_starred;
-    setTodos(newTodos);
-    if (newTodos[idx].id) {
-      // Persist the change
-        axios.put(`${API_BASE_URL}/api/todos/${newTodos[idx].id}`, {
-          ...newTodos[idx],
-          is_starred: newTodos[idx].is_starred
-        })
-        .then(response => {
-          updateLocalTodos(idx, response.data);
-        })
-        .catch(console.error);
-    }
-  };
+    const updatedTodos = todos.map((todo, index) => {
+      if (index === idx) {
+      // Toggle star status and update the back
+      const newIsStarred = !todo.is_starred;
+      const updatedTodo = {...todo, is_starred: newIsStarred};
+
+      // Update backend
+      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
+      { ...todo, is_starred: newIsStarred }) 
+      .then(response => {
+        // Update the state with the actual data returned from the backend to ensure consistency
+        const refreshedTodos = updatedTodos.map((item, refreshIdx) => {
+          if (refreshIdx === idx) {
+            // Update the specific todo item with fresh data
+              return {...item, ...response.data};  
+          }
+          return item;
+      });
+      setTodos(refreshedTodos.sort((a, b) => b.is_starred - a.is_starred));
+  })
+  .catch(error => {
+      console.error("Failed to update todo:", error);
+  });
+
+  return updatedTodo;
+}
+return todo;
+});
+// Set the optimistically updated todos to state
+setTodos(updatedTodos);
+};
+
 
   function clearCompletedTodos() {
     console.log('Clearing completed todos');
