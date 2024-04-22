@@ -282,6 +282,15 @@ a {
   z-index: 100;
 }
 
+.error {
+  display: block;
+  color: red;
+  font-size: 1em;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  overflow: auto;
+}
+
 
 @keyframes fadein {
   from {bottom: 0; opacity: 0;} 

@@ -12,6 +12,8 @@ function App() {
   const [showToast, setShowToast] = useState(false);
   // Ref to store the index of a newly added todo for focusing
   const newTodoIndexRef = useRef(null);
+  // Control whether to show register form
+  const [showRegister, setShowRegister] = useState(true);
 
   // Fetch to-dos from the server
   const fetchTodos = async () => {
@@ -289,6 +291,11 @@ setTodos(updatedTodos);
     }, 3000);
   };
 
+  const handleRegistrationSuccess = () => {
+    // Hide the register form
+    setShowRegister(false);
+  }
+
   return (
     <div className="app">
       {!isLoggedIn ? (
@@ -300,7 +307,8 @@ setTodos(updatedTodos);
         <p>If you want to test the site without registering you can go <a href="https://arttu.info/todo">here</a>. Beware that unregistered todos live only in the local browser.</p>
         </div>
           <Login onLoginSuccess={handleLoginSuccess} />
-          <Register />
+          {showRegister && <Register onRegistrationComplete={handleRegistrationSuccess} />}
+          {/* <Register /> */}
         </>
       ) : (
         <>

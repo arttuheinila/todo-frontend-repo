@@ -2,28 +2,52 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-function Register() {
+function Register({ onRegistrationComplete }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [errors, setErrors] = useState({});
     const navigate = useNavigate();
+
+    const validateForm = () => {
+        let isValid = true;
+        const newErrors = {};
+
+        if (!username.trim()) {
+            isValid = false;
+            newErrors.username = "Email is required";
+        } else if (!/\S+@\S+\.\S+/.test(username)) {
+            isValid = false;
+            newErrors.username = "Email is invalid";
+        }
+
+        if (!password.trim()) {
+            isValid = false;
+            newErrors.password = "Password is required";
+        } else if (password.length < 8) {
+        isValid = false;
+        newErrors.password = "Password must be at least 8 characters";
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
-        try {
-            const { data } = await axios.post('/api/users/register', { username, password });
-            console.log('User registered:', data);
-            setLoading(false);
-            setTimeout(() => navigate('/login'), 2000);
-        } catch (error) {
-            setLoading(false);
-            if (error.response && error.response.status === 409) {
-                setError('Username already taken');
-            } else {
-                setError('Registration failed. Please try again later.')
+        // If the form is valid, register the user
+        if (validateForm()) {
+            setLoading(true);
+            try {
+                const { data } = await axios.post('/api/users/register', { username, password });
+                console.log('User registered:', data);
+                setLoading(false);
+                alert("Registration successful! Redirecting to login...");
+                onRegistrationComplete();
+                setTimeout(() => navigate('/login'), 2000);            
+            } catch (error) {
+                setLoading(false);
+                setErrors({ form: 'Registration failed. Please try again later.' });
             }
         }
     }
@@ -31,17 +55,32 @@ function Register() {
     return (
         <form onSubmit={handleSubmit} className="login-form">
             <label>
-                <p>Username:</p>
-                <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+                <p>Email:</p>
+                <input 
+                    type="text" 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value)} 
+                    aria-describedby="usernameError"
+                />
+                {errors.username && <e id="usernameError" className="error">{errors.username}</e>}
             </label>
             <label>
                 <p>Password:</p>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                <input 
+                    type="password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    aria-describedby="passwordError"
+                />
+                {errors.password && <e id="passwordError" className="error">{errors.password}</e>}
+            </label>
+            <label>
+                <p>We will never sell your data</p>
             </label>
             <button type="submit" disabled={loading}>
                 {loading ? 'Registering...' : 'Register'}
                 </button>
-                {error && <p className="error-message">{error}</p>}
+                {errors.form && <p className="error">{errors.form}</p>}
         </form>
     );
 }
