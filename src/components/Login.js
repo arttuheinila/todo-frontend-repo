@@ -36,7 +36,7 @@ function Login({ onLoginSuccess }) {
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
             <button type="submit">Login</button>
-            {error && <e className="error">{error}</e>}
+            {error && <p className="error">{error}</p>}
         </form>
     );
 }

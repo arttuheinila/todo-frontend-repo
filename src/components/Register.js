@@ -62,7 +62,7 @@ function Register({ onRegistrationComplete }) {
                     onChange={(e) => setUsername(e.target.value)} 
                     aria-describedby="usernameError"
                 />
-                {errors.username && <e id="usernameError" className="error">{errors.username}</e>}
+                {errors.username && <p id="usernameError" className="error">{errors.username}</p>}
             </label>
             <label>
                 <p>Password:</p>
@@ -72,7 +72,7 @@ function Register({ onRegistrationComplete }) {
                     onChange={(e) => setPassword(e.target.value)} 
                     aria-describedby="passwordError"
                 />
-                {errors.password && <e id="passwordError" className="error">{errors.password}</e>}
+                {errors.password && <p id="passwordError" className="error">{errors.password}</p>}
             </label>
             <label>
                 <p>We will never sell your data</p>
