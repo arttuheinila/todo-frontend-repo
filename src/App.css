@@ -291,6 +291,12 @@ a {
   overflow: auto;
 }
 
+/* "Visible" only for bots */
+.offscreen {
+  position: absolute;
+  left: -9999px;
+}
+
 
 @keyframes fadein {
   from {bottom: 0; opacity: 0;} 

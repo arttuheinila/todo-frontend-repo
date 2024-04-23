@@ -7,6 +7,8 @@ function Register({ onRegistrationComplete }) {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    // Use "confirmEmail" as honeypot field to prevent spam bots
+    const [confirmEmail, setConfirmEmail] = useState(""); 
     const navigate = useNavigate();
 
     const validateForm = () => {
@@ -35,19 +37,25 @@ function Register({ onRegistrationComplete }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // If the form is valid, register the user
-        if (validateForm()) {
-            setLoading(true);
-            try {
-                const { data } = await axios.post('/api/users/register', { username, password });
-                console.log('User registered:', data);
-                setLoading(false);
-                alert("Registration successful! Redirecting to login...");
-                onRegistrationComplete();
-                setTimeout(() => navigate('/login'), 2000);            
-            } catch (error) {
-                setLoading(false);
-                setErrors({ form: 'Registration failed. Please try again later.' });
+        // If the confirmEmail field is not empty, it's likely a bot
+        if (confirmEmail) {
+            console.log("Bot detected, ignore submission");
+        } else {
+            console.log("User submitted form");
+            // If the form is valid, register the user
+            if (validateForm()) {
+                setLoading(true);
+                try {
+                    const { data } = await axios.post('/api/users/register', { username, password });
+                    console.log('User registered:', data);
+                    setLoading(false);
+                    alert("Registration successful! Redirecting to login...");
+                    onRegistrationComplete();
+                    setTimeout(() => navigate('/login'), 2000);            
+                } catch (error) {
+                    setLoading(false);
+                    setErrors({ form: 'Registration failed. Please try again later.' });
+                }
             }
         }
     }
@@ -63,6 +71,13 @@ function Register({ onRegistrationComplete }) {
                     aria-describedby="usernameError"
                 />
                 {errors.username && <p id="usernameError" className="error">{errors.username}</p>}
+            </label>
+            <label>
+            <input 
+                type="text" 
+                name="confirmEmail" 
+                className="offscreen" 
+                onChange={(e) => setConfirmEmail(e.target.value)} />
             </label>
             <label>
                 <p>Password:</p>
