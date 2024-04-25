@@ -10,7 +10,7 @@ function Register() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const { data } = await axios.post('/api/users/register', { username, passsword });
+            const { data } = await axios.post('/api/users/register', { username, password });
             console.log('User registered:', data);
             // Redirect user to login page
             history.push('/login');
