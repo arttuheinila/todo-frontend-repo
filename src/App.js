@@ -4,7 +4,8 @@ import axios from 'axios';
 import Login from './components/Login'
 import Register from './components/Register'
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const API_BASE_URL = 'https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api'
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -304,7 +305,7 @@ setTodos(updatedTodos);
         <h1>Must (To) Do Today!</h1>
         <p><b>You are not Logged In</b></p>      
         <p>A Todo App (duh) that let's you add, update and remove things to do without all the unnecessary bells and whistles.</p>
-        <p>If you want to test the site without registering you can go <a href="https://arttu.info/todo">here</a>. Beware that unregistered todos live only in the local browser.</p>
+        <p>If you want to test the site without registering you can go <a href="https://arttu.info/tdf">here</a>. Beware that unregistered todos live only in the local browser.</p>
         </div>
           <Login onLoginSuccess={handleLoginSuccess} />
           {showRegister && <Register onRegistrationComplete={handleRegistrationSuccess} />}
