@@ -19,6 +19,7 @@ function App() {
 
   // Fetch to-dos from the server
   const fetchTodos = async () => {
+    console.log('Fetching todos...');
     try {
     const { data } = await axios.get("https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos", {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
