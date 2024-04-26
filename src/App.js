@@ -4,8 +4,7 @@ import axios from 'axios';
 import Login from './components/Login'
 import Register from './components/Register'
 
-// const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
-const API_BASE_URL = 'https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api'
+const API_BASE_URL = process.env.REACT_APP_API_URL;
 
 function App() {
   const [todos, setTodos] = useState([]);
