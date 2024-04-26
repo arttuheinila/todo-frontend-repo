@@ -18,9 +18,11 @@ function Register() {
         try {
             const { data } = await axios.post(`${API_BASE_URL}/api/users/register`, { username, password });
             console.log('User registered:', data);
+            console.log(`TRYING TO REGISTER USER TO ${API_BASE_URL}`, data);
             // Redirect user to login page
             history.push("/login");
         } catch (error) {
+            console.log(`TRYING TO REGISTER USER TO ${API_BASE_URL}`, data);
             console.error('Registration error:', error.response.data)
         }
     }
