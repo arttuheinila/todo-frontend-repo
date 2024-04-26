@@ -5,6 +5,8 @@ import Login from './components/Login'
 import Register from './components/Register'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
+// const API_BASE_URL = "https://powerful-reef-86902-97c19a7b8321.herokuapp.com"
+console.log("API Base URL:", process.env.REACT_APP_API_URL);
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -18,7 +20,7 @@ function App() {
   // Fetch to-dos from the server
   const fetchTodos = async () => {
     try {
-    const { data } = await axios.get(`${API_BASE_URL}/api/todos`, {
+    const { data } = await axios.get("https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos", {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
     });
     setTodos(data)
@@ -133,7 +135,7 @@ function App() {
   const saveTodoAtIndex = (idx, callback) => {
     const todo = todos[idx];
     if (todo.id) {
-      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
+      axios.put(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${todo.id}`, todo)
       .then(response => {
         updateLocalTodos(idx, response.data);
         // Show toast message on successful todo update
@@ -194,7 +196,7 @@ function App() {
             const updatedTodo = {...todo, is_completed: newIsCompleted};
 
             // Update backend
-            axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
+            axios.put(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${todo.id}`, 
                 { ...todo, is_completed: newIsCompleted }) 
             .then(response => {
                 // Update the state with the actual data returned from the backend to ensure consistency
@@ -227,7 +229,7 @@ function App() {
       const updatedTodo = {...todo, is_starred: newIsStarred};
 
       // Update backend
-      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
+      axios.put(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${todo.id}`, 
       { ...todo, is_starred: newIsStarred }) 
       .then(response => {
         // Update the state with the actual data returned from the backend to ensure consistency
@@ -259,7 +261,7 @@ setTodos(updatedTodos);
 
     // Array of promises for deleting copleted todos
     const deletePromises = completedIds.map(id =>
-      axios.delete(`${API_BASE_URL}/api/todos/${id.id}`)
+      axios.delete(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${id.id}`)
       .catch(err => console.error("Failed to delete todo with ID:", id, err))
   );
   // Wait for all deletions to complete
@@ -301,7 +303,7 @@ setTodos(updatedTodos);
       {!isLoggedIn ? (
         <>
         <div className="header">
-        <h1>Must (To) Do Today!</h1>
+        <h1>Must (To) Do (Today)!</h1>
         <p><b>You are not Logged In</b></p>      
         <p>A Todo App (duh) that let's you add, update and remove things to do without all the unnecessary bells and whistles.</p>
         <p>If you want to test the site without registering you can go <a href="https://arttu.info/tdf">here</a>. Beware that unregistered todos live only in the local browser.</p>

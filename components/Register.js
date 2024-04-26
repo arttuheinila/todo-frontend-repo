@@ -1,8 +1,11 @@
 import React, { usesState } from "react";
 import { useHistory } from "react-router-dom";
-import Axios from "axios";
+import axios from "axios";
+
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+console.log('REGISTER API_BASE_URL:', API_BASE_URL);
 
 function Register() {
     const [username, setUsername] = useState("");
@@ -11,11 +14,12 @@ function Register() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log(`TRYING TO REGISTER USER TO ${API_BASE_URL}`, data);
         try {
             const { data } = await axios.post(`${API_BASE_URL}/api/users/register`, { username, password });
             console.log('User registered:', data);
             // Redirect user to login page
-            history.push(`${API_BASE_URL}/login`);
+            history.push("/login");
         } catch (error) {
             console.error('Registration error:', error.response.data)
         }
