@@ -10,6 +10,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL;
 function App() {
   const [todos, setTodos] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Show toast message on completion
   const [showToast, setShowToast] = useState(false);
   // Ref to store the index of a newly added todo for focusing
   const newTodoIndexRef = useRef(null);
@@ -23,11 +24,24 @@ function App() {
     const { data } = await axios.get(`${API_BASE_URL}/api/todos`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
     });
-    setTodos(data)
+    const sortedData = sortTodos(data)
+    setTodos(sortedData)
   } catch (error) {
     console.log('Failed to fetch todos:', error);
   }
 };
+
+  // Sorting function based on the starred and completion status of todos
+  const sortTodos = (todos) => {
+    return todos.sort((a, b) => {
+      if (a.is_starred && !b.is_starred) return -1;
+      if (!a.is_starred && b.is_starred) return 1;
+      if (!a.is_completed && b.is_completed) return -1;
+      if (a.is_completed && !b.is_completed) return 1;
+      return 0; // Maintain order if the same type
+    });
+  };
+
   useEffect(() => {
   if (localStorage.getItem('token')) {
     // Update login status if token is present
@@ -289,7 +303,8 @@ setTodos(updatedTodos);
       }
       return item;
     });
-    setTodos(updatedTodos);
+    // sort after updating
+    setTodos(sortTodos(updatedTodos));
   }
   
   // Show toast message for 3 seconds
