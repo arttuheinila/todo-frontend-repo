@@ -3,6 +3,7 @@ import './App.css';
 import axios from 'axios';     
 import Login from './components/Login'
 import Register from './components/Register'
+import { isCompositeComponent } from 'react-dom/test-utils';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
 
@@ -70,11 +71,11 @@ function App() {
   
   // Automatically add an empty todo at the start of the list if all tasks are completed or the list is cleared
   useEffect(() => {
-    if (todos.every(todo => todo.isCompleted) || todos.length === 0) {
+    if (todos.every(todo => todo.is_completed) || todos.length === 0) {
       setTodos([
         {
           content: '',
-          isCompleted: false,
+          is_completed: false,
         },
      ...todos,
       ]);
@@ -93,7 +94,7 @@ function App() {
     else if (e.key === 'Tab') {
       e.preventDefault();
       // Save current
-      saveTodoAtIndex(idx, () => {
+      saveTodoAtIndex(idx, todos[idx].is_completed, () => {
         // After saving, add a new todo
         addNewTodoAtIndex(idx + 1);
       });
@@ -131,31 +132,8 @@ function App() {
     setTodos(newTodos);
   }
 
-  const saveTodoAtIndex = (idx, callback) => {
-    const todo = todos[idx];
-    if (todo.id) {
-      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
-      .then(response => {
-        updateLocalTodos(idx, response.data);
-        // Show toast message on successful todo update
-        // showToastMessage();
-        // Call the callback after save, if provided
-        if (callback) callback();
-      }).catch(console.error);
-    } else {
-      axios.post(`${API_BASE_URL}/api/todos`, todo)
-      .then(response => {
-        updateLocalTodos(idx, response.data);
-        // Show toast on successful creation
-        // showToastMessage();
-        // Call the callback after save, if provided
-        if (callback) callback();
-      }).catch(console.error);
-    }
-  };
-
   const addNewTodoAtIndex = (idx) => {
-    const newTodo = { content: '', isCompleted: false, isNew: true };
+    const newTodo = { content: '', is_completed: false, isNew: true };
     const updatedTodos = [...todos.slice(0, idx), newTodo, ...todos.slice(idx)];
     setTodos(updatedTodos);
     newTodoIndexRef.current = idx;  // Set the ref for the new todo index
@@ -186,7 +164,26 @@ function App() {
       const updatedTodos = todos.filter((_, index) => index !== idx)
       setTodos(updatedTodos);
     }
-  }
+  };
+
+  const saveTodoAtIndex = (idx, is_completed = false, callback) => {
+    const todo = { ...todos[idx], is_completed};
+    if (todo.id) {
+      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
+      .then(response => {
+        updateLocalTodos(idx,response.data);
+        // Call the callback after save, if provided
+        if (callback) callback();
+      }).catch(console.error);
+    } else {
+      axios.post(`${API_BASE_URL}/api/todos`, todo)
+      .then(response => {
+        updateLocalTodos(idx, response.data);
+        // Call the callback after save, if provided
+        if (callback) callback();
+      }).catch(console.error);
+    }
+  };
 
   const toggleTodoCompleteAtIndex = (idx) => {
     const updatedTodos = todos.map((todo, index) => {
@@ -194,9 +191,12 @@ function App() {
           // Check if todo has an ID
           if (!todo.id) {
             console.log("this doesn't have an index. i will update it")
-            saveTodoAtIndex(idx);
-            console.log("i did that")
+            saveTodoAtIndex(idx, true, () => {
+              console.log("Todo has been created and marked completed");
+            });
+            return {...todo, is_completed: true};
           }
+
           // Toggle completion status and update the backend
           console.log("i will now do the backend")
           const newIsCompleted = !todo.is_completed;
