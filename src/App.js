@@ -191,30 +191,36 @@ function App() {
   const toggleTodoCompleteAtIndex = (idx) => {
     const updatedTodos = todos.map((todo, index) => {
         if (index === idx) {
-            // Toggle completion status and update the backend
-            const newIsCompleted = !todo.is_completed;
-            // Optimistically update the todo item
-            const updatedTodo = {...todo, is_completed: newIsCompleted};
+          // Check if todo has an ID
+          if (!todo.id) {
+            console.log("this doesn't have an index. i will update it")
+            saveTodoAtIndex(idx);
+            console.log("i did that")
+          }
+          // Toggle completion status and update the backend
+          console.log("i will now do the backend")
+          const newIsCompleted = !todo.is_completed;
+          // Optimistically update the todo item
+          const updatedTodo = {...todo, is_completed: newIsCompleted};
+          // Update backend
+          axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
+              { ...todo, is_completed: newIsCompleted }) 
+          .then(response => {
+              // Update the state with the actual data returned from the backend to ensure consistency
+              const refreshedTodos = updatedTodos.map((item, refreshIdx) => {
+                if (refreshIdx === idx) {
+                  // Update the specific todo item with fresh data
+                    return {...item, ...response.data};  
+                }
+                return item;
+            });
+            setTodos(refreshedTodos.sort((a, b) => a.is_completed - b.is_completed));
+        })
+        .catch(error => {
+            console.error("Failed to update todo:", error);
+        });
 
-            // Update backend
-            axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
-                { ...todo, is_completed: newIsCompleted }) 
-            .then(response => {
-                // Update the state with the actual data returned from the backend to ensure consistency
-                const refreshedTodos = updatedTodos.map((item, refreshIdx) => {
-                  if (refreshIdx === idx) {
-                    // Update the specific todo item with fresh data
-                      return {...item, ...response.data};  
-                  }
-                  return item;
-              });
-              setTodos(refreshedTodos.sort((a, b) => a.is_completed - b.is_completed));
-          })
-          .catch(error => {
-              console.error("Failed to update todo:", error);
-          });
-
-          return updatedTodo;
+        return updatedTodo;
       }
       return todo;
   });
