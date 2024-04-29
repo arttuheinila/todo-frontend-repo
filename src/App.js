@@ -108,7 +108,7 @@ function App() {
     else if (e.key === 'Tab') {
       e.preventDefault();
       // Save current
-      saveTodoAtIndex(idx, todos[idx].is_completed, () => {
+      saveTodoAtIndex(idx, todos[idx].is_completed, todos[idx].is_starred, () => {
         // After saving, add a new todo
         addNewTodoAtIndex(idx + 1);
       });
@@ -180,8 +180,8 @@ function App() {
     }
   };
 
-  const saveTodoAtIndex = (idx, is_completed = false, callback) => {
-    const todo = { ...todos[idx], is_completed};
+  const saveTodoAtIndex = (idx, is_completed = false, is_starred = false, callback) => {
+    const todo = { ...todos[idx], is_completed, is_starred};
     if (todo.id) {
       axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
       .then(response => {
@@ -205,10 +205,8 @@ function App() {
           // Check if todo has an ID
           if (!todo.id) {
             console.log("this doesn't have an index. i will update it")
-            saveTodoAtIndex(idx, true, () => {
-              console.log("Todo has been created and marked completed");
-            });
-            return {...todo, is_completed: true};
+            saveTodoAtIndex(idx, true, todo.is_starred)
+            return; // {...todo, is_completed: true};
           }
 
           // Toggle completion status and update the backend
@@ -245,35 +243,43 @@ function App() {
   const toggleStarAtIndex = (idx) => {
     const updatedTodos = todos.map((todo, index) => {
       if (index === idx) {
-      // Toggle star status and update the back
-      const newIsStarred = !todo.is_starred;
-      const updatedTodo = {...todo, is_starred: newIsStarred};
+        // Check if todo has an ID
+        if (!todo.id) {
+          console.log("This todo doesn't have an ID, saving it now");
+          // Save the new todo with the starred status
+          saveTodoAtIndex(idx, todo.is_completed, !todo.is_starred);
+          return { ...todo, is_starred: !todo.is_starred }; // Optimistically update the local todo item
+        }
 
-      // Update backend
-      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
-      { ...todo, is_starred: newIsStarred }) 
-      .then(response => {
-        // Update the state with the actual data returned from the backend to ensure consistency
-        const refreshedTodos = updatedTodos.map((item, refreshIdx) => {
-          if (refreshIdx === idx) {
-            // Update the specific todo item with fresh data
-              return {...item, ...response.data};  
-          }
-          return item;
-      });
-      setTodos(refreshedTodos.sort((a, b) => b.is_starred - a.is_starred));
-  })
-  .catch(error => {
-      console.error("Failed to update todo:", error);
-  });
+        // Toggle star status and update the backend
+        const newIsStarred = !todo.is_starred;
+        const updatedTodo = {...todo, is_starred: newIsStarred};
 
-  return updatedTodo;
-}
-return todo;
-});
-// Set the optimistically updated todos to state
-setTodos(updatedTodos);
-};
+        // Update backend
+        axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
+          { ...todo, is_starred: newIsStarred }) 
+          .then(response => {
+            // Update the state with the actual data returned from the backend to ensure consistency
+            const refreshedTodos = updatedTodos.map((item, refreshIdx) => {
+              if (refreshIdx === idx) {
+                // Update the specific todo item with fresh data
+                return {...item, ...response.data};  
+              }
+              return item;
+            });
+            setTodos(refreshedTodos.sort((a, b) => b.is_starred - a.is_starred));
+          })
+          .catch(error => {
+              console.error("Failed to update todo:", error);
+          });
+
+        return updatedTodo;
+      }
+      return todo;
+    });
+    // Set the optimistically updated todos to state
+    setTodos(updatedTodos);
+  };
 
 
   function clearCompletedTodos() {
