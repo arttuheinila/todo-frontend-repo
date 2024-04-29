@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import axios from "axios";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
 function Login({ onLoginSuccess }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -11,7 +13,7 @@ function Login({ onLoginSuccess }) {
         // Clear previous errors
         setError("");
         try {
-            const { data } = await axios.post("/api/users/login", { username, password });
+            const { data } = await axios.post(`${API_BASE_URL}/api/users/login`, { username, password });
             // Store the token onLoginSuccess
             localStorage.setItem("token", data.token);
             // Notify parent component

@@ -5,8 +5,6 @@ import Login from './components/Login'
 import Register from './components/Register'
 
 const API_BASE_URL = process.env.REACT_APP_API_URL;
-// const API_BASE_URL = "https://powerful-reef-86902-97c19a7b8321.herokuapp.com"
-console.log("API Base URL:", process.env.REACT_APP_API_URL);
 
 function App() {
   const [todos, setTodos] = useState([]);
@@ -21,7 +19,7 @@ function App() {
   const fetchTodos = async () => {
     console.log('Fetching todos...');
     try {
-    const { data } = await axios.get("https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos", {
+    const { data } = await axios.get(`${API_BASE_URL}/api/todos`, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}`}
     });
     setTodos(data)
@@ -136,7 +134,7 @@ function App() {
   const saveTodoAtIndex = (idx, callback) => {
     const todo = todos[idx];
     if (todo.id) {
-      axios.put(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${todo.id}`, todo)
+      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, todo)
       .then(response => {
         updateLocalTodos(idx, response.data);
         // Show toast message on successful todo update
@@ -172,8 +170,9 @@ function App() {
 
   const removeTodoAtIndex = (idx) => {
     const todo = todos[idx]
-    
+    // console.log(`attemptin to delete todo ${todo} with id ${todo.id}`)
     if (todo.id) {
+      console.log("The Todo has an index. I will delete it now")
       axios.delete(`${API_BASE_URL}/api/todos/${todo.id}`)
         .then(() => {
           // After successful deletion update local state
@@ -183,6 +182,7 @@ function App() {
         .catch(err => console.error("Failed to delete todo:", err));
     } else {
       //  If it's a new, unsaved to-do, remove it from local state, no need for backend interaction
+      console.log("The todo has no index. I will delete it from the frontend")
       const updatedTodos = todos.filter((_, index) => index !== idx)
       setTodos(updatedTodos);
     }
@@ -197,7 +197,7 @@ function App() {
             const updatedTodo = {...todo, is_completed: newIsCompleted};
 
             // Update backend
-            axios.put(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${todo.id}`, 
+            axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
                 { ...todo, is_completed: newIsCompleted }) 
             .then(response => {
                 // Update the state with the actual data returned from the backend to ensure consistency
@@ -230,7 +230,7 @@ function App() {
       const updatedTodo = {...todo, is_starred: newIsStarred};
 
       // Update backend
-      axios.put(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${todo.id}`, 
+      axios.put(`${API_BASE_URL}/api/todos/${todo.id}`, 
       { ...todo, is_starred: newIsStarred }) 
       .then(response => {
         // Update the state with the actual data returned from the backend to ensure consistency
@@ -262,7 +262,7 @@ setTodos(updatedTodos);
 
     // Array of promises for deleting copleted todos
     const deletePromises = completedIds.map(id =>
-      axios.delete(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/todos/${id.id}`)
+      axios.delete(`${API_BASE_URL}/api/todos/${id.id}`)
       .catch(err => console.error("Failed to delete todo with ID:", id, err))
   );
   // Wait for all deletions to complete

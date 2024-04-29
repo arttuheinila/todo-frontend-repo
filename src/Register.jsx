@@ -5,6 +5,9 @@ function Register() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    console.log('REGISTER API_BASE_URL:', API_BASE_URL);
+
+
     const handleRegister = async (e) => {
         e.preventDefault(); // Prevent form from causing a page reload
 

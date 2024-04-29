@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
 function Register({ onRegistrationComplete }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -44,9 +46,11 @@ function Register({ onRegistrationComplete }) {
             console.log("User submitted form");
             // If the form is valid, register the user
             if (validateForm()) {
+                console.log('Valid form. Registering user...');
                 setLoading(true);
                 try {
-                    const { data } = await axios.post('/api/users/register', { username, password });
+                    console.log(`TRYING TO REGISTER USER TO https://powerful-reef-86902-97c19a7b8321.herokuapp.com`, { username, password });
+                    const { data } = await axios.post(`https://powerful-reef-86902-97c19a7b8321.herokuapp.com/api/users/register`, { username, password });
                     console.log('User registered:', data);
                     setLoading(false);
                     alert("Registration successful! Redirecting to login...");

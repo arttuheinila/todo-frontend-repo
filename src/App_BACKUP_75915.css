@@ -102,10 +102,7 @@ p {
   }
 
   .header {
-<<<<<<< HEAD
-=======
     /* Keep it centered, but maybe let's give the items a bit more breathing room */
->>>>>>> 9589431a799ae2c32e5b19ee65d06b6d5bc73d0d
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -135,8 +132,4 @@ p {
     height: 24px;
     margin-right: 5px; 
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 9589431a799ae2c32e5b19ee65d06b6d5bc73d0d
