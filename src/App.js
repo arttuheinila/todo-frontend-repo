@@ -130,7 +130,7 @@ function App() {
     // Ctrl+Enter toggles the todo as completed/incomplete
     else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      saveTodoAtIndex(idx);
+      saveTodoAtIndex(idx, todos[idx].is_completed, todos[idx].is_starred);
       showToastMessage();
     }
     // Star the todo
