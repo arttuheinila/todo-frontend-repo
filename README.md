@@ -12,6 +12,7 @@ Live site available [here](https://arttu.info/todo)
 - Delete a todo
 - Rearrange todos based on star and completion status
 - Hotkeys for easy navigation and management
+- Input validation and honey pot to make bots work just a tiny bit harder
 
 ## Installation
 
