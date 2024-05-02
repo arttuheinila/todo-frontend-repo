@@ -1,26 +1,30 @@
-# Must (To) Do Today React App
+# Todo Application Frontend
 
-A Simple to do react app to add and check off things to do for the day.
+This repository contains the frontend code of the Todo Application built with React. It interacts with a backend server which repository is available [here](https://github.com/arttuheinila/todo-backend-repo).
+Live site available [here](https://arttu.info/todo)
 
-React handles the state changes of the app. Being a front-end app it uses local storage to save the items.
+## Features
 
-Additional features are still being added so the app is not yet in final form.
+- View all todos
+- Add a new todo
+- Mark todo as complete
+- Mark todo as starred
+- Delete a todo
+- Rearrange todos based on star and completion status
+- Hotkeys for easy navigation and management
 
-## Installation ##
+## Installation
 
-The single page Front End -application uses react so you do need to install it with node. 
-
-To install the dependencies go to the project location and type
-
-	npm install
-	npm run start
-
-## Use ##
-
-Press Enter to create a new item
-Check off current item by checking off the box, which moves the completed task as the final item
-Move between items with tab or clicking with mouse
-
-The app uses local storage so it will remember your items from session to session with the same browser. Remember that clearing local storage will permanently delete all the items. 
-
-Live site here arttu.info/todo/
+```bash
+git clone https://github.com/yourusername/todo-frontend.git
+cd todo-frontend
+npm install
+Running Locally
+Before starting the server, ensure the backend is also running. You can find the backend setup instructions here.
+bash
+npm start
+This will start the React development server and open the application in your default web browser.
+Deployment
+This frontend is configured to deploy on any static hosting service. Current deployment is done on a custom domain:
+    • Live URL: https://arttu.info/todo
+For detailed instructions on how to deploy the frontend to a production environment, see the deployment section.
